@@ -95,8 +95,6 @@ https://drive.google.com/drive/folders/135Ul9o_aQnDq61_OZHzYUO_2a4bDv3Fx?usp=dri
 
 For the independent test set, the same layout is used under a separate test root: test/Data with same folder structure.
 
-
-
 ## Methods summary
 - **Segmentation model:** SegFormer (transformer-based) for binary semantic segmentation  
 - **Refinement:** track-guided temporal consistency post-processing  
@@ -108,8 +106,31 @@ Recommended notebooks/scripts:
 - `01_segmentation_train` – training + validation + refinement + visualizations
 - `02_segmentation_infer_testdata` – inference on test set + refinement + visualizations
 
+> Update paths in the notebook(s) to point to your Google Drive folders for REF/RIF data and output directory. GPU is required.
 
-> Update paths in the notebook(s) to point to your Google Drive folders for REF/RIF data and output directory.
+## Key configuration (used in this project)
+
+- **Training**
+  - **Loss:** Cross-entropy on logits (upsampled to GT mask size)
+  - **Optimizer:** AdamW, learning rate `2e-4`
+  - **Schedule:** `epochs=10`, `batch_size=2`, `num_workers=2`
+
+- **Tracking**
+  - **Association:** Hungarian matching with IoU threshold `iou_thr_track=0.2`
+
+- **Refinement**
+  - **Keep rule:** Coverage threshold `cover_thr_refine=0.25` (max over track)
+
+- **Growth-rate**
+  - **Time base:** `interval_min=2.0` min/frame; rolling window `16` frames
+  - **Estimation:** Rolling exponential fit (slope of `log(area)`)
+
+- **Early detection**
+  - **Stability rules:** `smooth_window=7`; sustained `k=3` frames
+  - **Markers:** z-score / ratio / gap + Welch t-test (`p<0.05`)
+
+
+
 
 ## Outputs
 Saved into the configured output directory:
@@ -118,8 +139,59 @@ Saved into the configured output directory:
 - Normalized plots (REF baseline at y=1)
 - Early-detection reports + marker plots
 
-## Key result 
+## Key results
 Refinement improves frame-wise segmentation overlap (Acc/IoU/Dice), but does not always improve downstream growth dynamics or early-detection time, highlighting that pDST performance depends on temporally stable area measurements.
+
+# Early detection prediction for Omnipose (Z-score, ratio, gap)
+
+<p align="center">
+  <img src="figures/Omni_z.png" width="700">
+</p>
+<p align="center"><i>Omnipose early detection prediction using z-score (42 mins) </i></p>
+
+<p align="center">
+  <img src="figures/Omni_ratio.png" width="700">
+</p>
+<p align="center"><i>Omnipose early detection prediction using ratio (32 mins) </i></p>
+
+<p align="center">
+  <img src="figures/Omni_gap.png" width="700">
+</p>
+<p align="center"><i>Omnipose early detection prediction using gap (30 mins) </i></p>
+
+# Early detection prediction for raw SegFormer (Z-score, ratio, gap)
+
+<p align="center">
+  <img src="figures/Pred_z.png" width="700">
+</p>
+<p align="center"><i>SegFormer early detection prediction using z-score (46 mins) </i></p>
+
+<p align="center">
+  <img src="figures/Pred_ratio.png" width="700">
+</p>
+<p align="center"><i>SegFormer early detection prediction using ratio (42 mins) </i></p>
+
+<p align="center">
+  <img src="figures/Pred_gap.png" width="700">
+</p>
+<p align="center"><i>SegFormer early detection prediction using gap (40 mins) </i></p>
+
+# Early detection prediction for Refined (Z-score, ratio, gap)
+
+<p align="center">
+  <img src="figures/Refined_z.png" width="700">
+</p>
+<p align="center"><i>Refined early detection prediction using z-score (46 mins) </i></p>
+
+<p align="center">
+  <img src="figures/Refined_ratio.png" width="700">
+</p>
+<p align="center"><i>Refined early detection prediction using ratio (42 mins) </i></p>
+
+<p align="center">
+  <img src="figures/Refined_gap.png" width="700">
+</p>
+<p align="center"><i>Refined early detection prediction using gap (40 mins) </i></p>
 
 
 
